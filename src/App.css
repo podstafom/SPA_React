@@ -1,0 +1,101 @@
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.app-container {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.app-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.app-header h1 {
+  margin-bottom: 10px;
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 800px;
+  margin: 0 auto 30px;
+}
+
+.search-form button {
+  min-height: 56px;
+  min-width: 110px;
+}
+
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 35px 0;
+}
+
+.status-message {
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.results-title {
+  margin-bottom: 20px !important;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+  align-items: start;
+}
+
+.book-card {
+  height: 100%;
+}
+
+.book-cover {
+  height: 260px;
+  object-fit: contain;
+  background: #f0f0f0;
+}
+
+.book-cover-placeholder {
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+}
+
+.book-description {
+  margin-top: 12px !important;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .app-container {
+    padding-top: 24px;
+  }
+
+  .books-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-header h1 {
+    font-size: 2rem;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-form button {
+    width: 100%;
+  }
+}
