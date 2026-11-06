@@ -126,14 +126,14 @@ function App() {
         </Typography>
 
         <Typography variant="body1" color="text.secondary">
-          Здесь можно найти кНИГУ по названию или ISBN
+          Здесь можно найти книгу по названию или ISBN
         </Typography>
       </Box>
 
       <Box component="form" onSubmit={handleSearch} className="search-form">
         <TextField
           fullWidth
-          label="Введите название приколдесной кНИГИ или ISBN"
+          label="Введите название приколдесной книги или ISBN"
           placeholder="Например, писят два или 67"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -141,7 +141,7 @@ function App() {
         />
 
         <Button type="submit" variant="contained" disabled={loading}>
-          Найти нигу
+          Найти
         </Button>
       </Box>
 
