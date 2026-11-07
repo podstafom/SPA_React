@@ -8,14 +8,20 @@ function prepareQuery(query) {
   return isISBN ? normalizedISBN.toUpperCase() : query;
 }
 
-export async function searchBooks(query) {
+export async function searchBooks(query, fields) {
   let response;
+
+  const params = {
+    q: prepareQuery(query),
+  };
+
+  if (fields) {
+    params.fields = fields;
+  }
 
   try {
     response = await axios.get(API_URL, {
-      params: {
-        q: prepareQuery(query),
-      },
+      params,
       timeout: REQUEST_TIMEOUT_MS,
     });
   } catch (error) {

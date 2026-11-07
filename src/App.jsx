@@ -1,6 +1,8 @@
-import { useRef, useState } from "react";
+import useLogic from "./hooks/useLogic.js";
+import useFavorite from "./hooks/useFavorite.js";
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   CircularProgress,
@@ -8,115 +10,36 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-
+import { Link } from "react-router-dom";
 import BookCard from "./bookCard.jsx";
 import "./App.css";
 
 function App() {
-  const [query, setQuery] = useState("");
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false);
-  const activeRequestRef = useRef(null);
+  const {
+    query,
+    setQuery,
+    books,
+    loading,
+    error,
+    searched,
+    handleSearch,
+    suggestions,
+    suggestionsLoading,
+  } = useLogic();
 
-  async function handleSearch(event) {
-    event.preventDefault();
+  const {
+    addFavorite,
+    removeFavorite,
+    isFavorite
+  } = useFavorite();
 
-    if (activeRequestRef.current) {
-      return;
+  const handleToggleFavorite = (book) => {
+    if (isFavorite(book)) {
+      removeFavorite(book);
+    } else {
+      addFavorite(book);
     }
-
-    const searchQuery = query.trim();
-
-    if (searchQuery === "") {
-      setError("Не, так не правильно. Нужно ввести чётенькое произведение или чётенький ISBN <3");
-      setBooks([]);
-      setSearched(false);
-      return;
-    }
-
-    setError("");
-    setBooks([]);
-    setSearched(false);
-    setLoading(true);
-
-    const normalizedISBN = searchQuery.replace(/[\s-]/g, "");
-    const isISBN = /^\d{9}[\dXx]$|^\d{13}$/.test(normalizedISBN);
-    const apiQuery = isISBN ? normalizedISBN.toUpperCase() : searchQuery;
-    const url = "https://bookmetadata.ru/api/v1/search?q=" + encodeURIComponent(apiQuery);
-    const controller = new AbortController();
-    activeRequestRef.current = controller;
-
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, 10000);
-
-    try {
-      const response = await fetch(url, {
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error(
-            "Слишком много запросов"
-          );
-        }
-
-        if (response.status === 400) {
-          throw new Error(
-            "API отклонил запрос, проверьте корректность запроса"
-          );
-        }
-
-        throw new Error(`Ошибка сервера (HTTP ${response.status}).`);
-      }
-
-      const data = await response.json();
-
-      if (
-        !Array.isArray(data) ||
-        data.some(
-          (book) => !book || typeof book !== "object" || Array.isArray(book)
-        )
-      ) {
-        throw new Error("Сервер вернул данные в неизвестном формате");
-      }
-
-      setBooks(data);
-      setSearched(true);
-    } catch (err) {
-      if (activeRequestRef.current !== controller) {
-        return;
-      }
-
-      console.error("Ошибка поиска книг:", err);
-
-      if (err instanceof Error && err.name === "AbortError") {
-        setError("Сервер не ответил за 10 секунд,  повторите ЕЩЕЕЕ раз запрос");
-      } else if (err instanceof TypeError) {
-        setError(
-          "Не удалось подключиться к API, проверьте свой не скоростной интернет"
-        );
-      } else if (err instanceof SyntaxError) {
-        setError("Сервер вернул некорректный ответ");
-      } else {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Произошла неизвестная ошибка"
-        );
-      }
-    } finally {
-      clearTimeout(timeoutId);
-
-      if (activeRequestRef.current === controller) {
-        activeRequestRef.current = null;
-        setLoading(false);
-      }
-    }
-  }
+  };
 
   return (
     <Container maxWidth="lg" className="app-container">
@@ -128,18 +51,72 @@ function App() {
         <Typography variant="body1" color="text.secondary">
           Здесь можно найти книгу по названию или ISBN
         </Typography>
+
+        <Button
+          component={Link}
+          to="/favorites"
+          variant="outlined"
+        >
+          Избранное
+        </Button>
       </Box>
 
       <Box component="form" onSubmit={handleSearch} className="search-form">
-        <TextField
+        <Autocomplete
           fullWidth
-          label="Введите название приколдесной книги или ISBN"
-          placeholder="Например, писят два или 67"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          freeSolo
+          options={suggestions}
+          loading={suggestionsLoading}
           disabled={loading}
-        />
+          inputValue={query}
+          onInputChange={(event, newInputValue, reason) => {
+            if (reason === "input" || reason === "clear") {
+              setQuery(newInputValue);
+            }
+          }}
+          onChange={(event, selectedBook) => {
+            if (selectedBook && typeof selectedBook !== "string") {
+              const selectedTitle = selectedBook.Title || "";
 
+              setQuery(selectedTitle);
+              handleSearch(null, selectedTitle);
+            }
+          }}
+          filterOptions={(options) => options}
+          getOptionLabel={(option) => {
+            if (typeof option === "string") {
+              return option;
+            }
+
+            return option.Title || "";
+          }}
+          loadingText="Загружаем подсказки..."
+          noOptionsText={
+            query.trim().length < 3
+              ? "Введите не менее 3 символов"
+              : "Подходящих книг не найдено"
+          }
+          renderOption={(props, option) => (
+            <li {...props}>
+              <Box>
+                <Typography variant="body1">
+                  {option.Title}
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary">
+                  {option.AuthorName || "Автор не указан"}
+                </Typography>
+              </Box>
+            </li>
+          )}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Введите название приколдесной книги или ISBN"
+              placeholder="Например, писят два или 67"
+            />
+          )}
+        />
         <Button type="submit" variant="contained" disabled={loading}>
           Найти
         </Button>
@@ -176,6 +153,8 @@ function App() {
             <BookCard
               key={book.guid || book.ISBN || index}
               book={book}
+              isFavorite={isFavorite(book)}
+              onToggleFavorite={handleToggleFavorite}
             />
           ))}
         </Box>
