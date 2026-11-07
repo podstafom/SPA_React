@@ -9,10 +9,69 @@ function prepareQuery(query) {
 }
 
 export async function searchBooks(query) {
-  const response = await axios.get(API_URL, {
-    params: { q: prepareQuery(query) },
-    timeout: REQUEST_TIMEOUT_MS,
-  });
+  let response;
+
+  try {
+    response = await axios.get(API_URL, {
+      params: {
+        q: prepareQuery(query),
+      },
+      timeout: REQUEST_TIMEOUT_MS,
+    });
+  } catch (error) {
+    if (!axios.isAxiosError(error)) {
+      throw error;
+    }
+
+    if (error.response) {
+      if (error.response.status === 429) {
+        throw new Error(
+          "Слишком много запросов. Попробуйте немного позже.",
+          {
+            cause: error,
+          }
+        );
+      }
+
+      throw new Error(
+        `Ошибка сервера: HTTP ${error.response.status}`,
+        {
+          cause: error,
+        }
+      );
+    }
+
+    if (
+      error.code === "ECONNABORTED" ||
+      error.code === "ETIMEDOUT"
+    ) {
+      throw new Error(
+        "Сервер не ответил за 10 секунд. Попробуйте ещё раз.",
+        {
+          cause: error,
+        }
+      );
+    }
+
+    if (error.request) {
+      throw new Error(
+        "Не удалось получить ответ от API. Проверьте интернет или доступность сервера.",
+        {
+          cause: error,
+        }
+      );
+    }
+
+    throw new Error("Не удалось выполнить запрос к API.", {
+      cause: error,
+    });
+  }
+
+  if (!Array.isArray(response.data)) {
+    throw new Error(
+      "Сервер вернул данные в неизвестном формате"
+    );
+  }
 
   return response.data;
 }
