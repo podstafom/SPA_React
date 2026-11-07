@@ -6,9 +6,10 @@ import {
   Typography,
   Button,
   Box,
+  IconButton,
 } from "@mui/material";
 
-function BookCard({ book }) {
+function BookCard({ book, isFavorite = false, onToggleFavorite}) {
   const [expanded, setExpanded] = useState(false);
   const [failedCoverUrl, setFailedCoverUrl] = useState("");
 
@@ -63,7 +64,34 @@ function BookCard({ book }) {
       )}
 
       <CardContent>
-        <Typography variant="h6" component="h2">{title}</Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <Typography variant="h6" component="h2">
+            {title}
+          </Typography>
+
+          <IconButton
+            type="button"
+            color={isFavorite ? "error" : "default"}
+            aria-label={
+              isFavorite
+                ? "Удалить из избранного"
+                : "Добавить в избранное"
+            }
+            aria-pressed={isFavorite}
+            onClick={() => onToggleFavorite?.(book)}
+          >
+            <span aria-hidden="true">
+              {isFavorite ? "♥" : "♡"}
+            </span>
+          </IconButton>
+        </Box>
 
         <Typography color="text.secondary">Автор АКА крутой перец: {author}</Typography>
 
