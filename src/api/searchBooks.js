@@ -8,7 +8,7 @@ function prepareQuery(query) {
   return isISBN ? normalizedISBN.toUpperCase() : query;
 }
 
-export async function searchBooks(query, fields) {
+export async function searchBooks(query, fields, signal) {
   let response;
 
   const params = {
@@ -23,8 +23,13 @@ export async function searchBooks(query, fields) {
     response = await axios.get(API_URL, {
       params,
       timeout: REQUEST_TIMEOUT_MS,
+      signal,
     });
   } catch (error) {
+    if (axios.isCancel(error)) {
+      throw error;
+    }
+
     if (!axios.isAxiosError(error)) {
       throw error;
     }
