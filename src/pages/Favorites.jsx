@@ -21,6 +21,10 @@ function Favorites() {
         isFavorite,
     } = useFavorite();
 
+    const handleSearchQueryChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     const filteredFavorites = favorites.filter((book) => {
@@ -55,7 +59,7 @@ function Favorites() {
                     label="Поиск в избранном"
                     placeholder="Введите название книги, автора или ISBN"
                     value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
+                    onChange={handleSearchQueryChange}
                 />
                 {favorites.length === 0 && (
                     <Alert severity="info">

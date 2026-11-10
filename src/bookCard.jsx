@@ -44,6 +44,17 @@ function BookCard({ book, isFavorite = false, onToggleFavorite}) {
     typeof book.CoverUrl === "string" && book.CoverUrl.trim()
       ? book.CoverUrl
       : "";
+  const handleCoverError = () => {
+    setFailedCoverUrl(coverUrl);
+  };
+
+  const handleToggleFavorite = () => {
+    onToggleFavorite?.(book);
+  };
+
+  const handleToggleExpanded = () => {
+    setExpanded(!expanded);
+  };
 
   return (
     <Card className="book-card">
@@ -53,7 +64,7 @@ function BookCard({ book, isFavorite = false, onToggleFavorite}) {
           image={coverUrl}
           alt={title}
           className="book-cover"
-          onError={() => setFailedCoverUrl(coverUrl)}
+          onError={handleCoverError}
         />
       ) : (
         <Box className="book-cover-placeholder">
@@ -85,7 +96,7 @@ function BookCard({ book, isFavorite = false, onToggleFavorite}) {
                 : "Добавить в избранное"
             }
             aria-pressed={isFavorite}
-            onClick={() => onToggleFavorite?.(book)}
+            onClick={handleToggleFavorite}
           >
             <span aria-hidden="true">
               {isFavorite ? "♥" : "♡"}
@@ -111,7 +122,7 @@ function BookCard({ book, isFavorite = false, onToggleFavorite}) {
 
         {description.length > 150 && (
           <Button
-            onClick={() => setExpanded(!expanded)}
+            onClick={handleToggleExpanded}
             size="small"
             aria-expanded={expanded}
           >

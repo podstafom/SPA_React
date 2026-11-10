@@ -11,6 +11,11 @@ export default function useLogic() {
     const [suggestions, setSuggestions] = useState([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
+    const clearSuggestions = () => {
+        setSuggestions([]);
+        setSuggestionsLoading(false);
+    };
+
     const setQuery = (value) => {
         setQueryState(value);
         setSuggestions([]);
@@ -24,7 +29,7 @@ export default function useLogic() {
             return;
         }
 
-        let isCurrentRequest = true;
+        const controller = new AbortController();
 
         const timeoutId = setTimeout(async () => {
             setSuggestionsLoading(true);
@@ -32,26 +37,31 @@ export default function useLogic() {
             try {
             const result = await searchBooks(
                 normalizedQuery,
-                "Title,AuthorName"
+                "Title,AuthorName",
+                controller.signal
             );
 
-            if (isCurrentRequest) {
+            if (!controller.signal.aborted) {
                 setSuggestions(result);
             }
             } catch (error) {
-            if (isCurrentRequest) {
+                if (controller.signal.aborted) {
+                    return;
+                }
+
                 setSuggestions([]);
                 console.error("Ошибка получения подсказок:", error);
             }
-            } finally {
-            if (isCurrentRequest) {
-                setSuggestionsLoading(false);
-            }
+
+            finally {
+                if (!controller.signal.aborted) {
+                    setSuggestionsLoading(false);
+                }
             }
         }, 500);
 
         return () => {
-            isCurrentRequest = false;
+            controller.abort();
             clearTimeout(timeoutId);
         };
     }, [query]);
@@ -97,5 +107,6 @@ export default function useLogic() {
         handleSearch,
         suggestions,
         suggestionsLoading,
+        clearSuggestions,
     };
 }
