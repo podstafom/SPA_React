@@ -11,11 +11,6 @@ export default function useLogic() {
     const [suggestions, setSuggestions] = useState([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
-    const clearSuggestions = () => {
-        setSuggestions([]);
-        setSuggestionsLoading(false);
-    };
-
     const setQuery = (value) => {
         setQueryState(value);
         setSuggestions([]);
@@ -107,6 +102,5 @@ export default function useLogic() {
         handleSearch,
         suggestions,
         suggestionsLoading,
-        clearSuggestions,
     };
 }

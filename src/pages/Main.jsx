@@ -24,7 +24,6 @@ function Main() {
         handleSearch,
         suggestions,
         suggestionsLoading,
-        clearSuggestions,
     } = useLogic();
 
     const {
@@ -44,10 +43,6 @@ function Main() {
     const handleInputChange = (event, newInputValue, reason) => {
         if (reason === "input" || reason === "clear") {
             setQuery(newInputValue);
-
-            if (newInputValue.trim().length < 3) {
-            clearSuggestions();
-            }
         }
     };
 
